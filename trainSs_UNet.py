@@ -106,10 +106,10 @@ if __name__=='__main__':
             for j, (cimg_blk, bmsk_blk) in enumerate(block_loader):
                 
                 # loop through all masks, expand mask dimension to have one more label dimension [0,0,0,0,0,0,1]?
-                print("before bmsk_blk: " + str(bmsk_blk.shape))
+                # print("before bmsk_blk: " + str(bmsk_blk.shape))
                 # bmsk_blk=bmsk_blk[:,1,:,:]
                 bmsk_blk=bmsk_blk[:,:,1,:,:]
-                print("after bmsk_blk: " + str(bmsk_blk.shape))
+                # print("after bmsk_blk: " + str(bmsk_blk.shape))
 
                 cimg_blk, bmsk_blk=Variable(cimg_blk), Variable(bmsk_blk)
                 if use_gpu:
@@ -117,7 +117,7 @@ if __name__=='__main__':
                     bmsk_blk=bmsk_blk.cuda()
                 pr_bmsk_blk=model(cimg_blk) # output
 
-                print("pr_bmsk_blk: " + str(pr_bmsk_blk.shape))
+                # print("pr_bmsk_blk: " + str(pr_bmsk_blk.shape))
                 # import pdb;pdb.set_trace()
     
                 # Loss Backward
