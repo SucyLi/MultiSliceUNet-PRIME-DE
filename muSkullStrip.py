@@ -18,6 +18,7 @@ if __name__=='__main__':
     # Optional Option
     optional.add_argument('-out', '--out_dir', type=str, help='Output Dir')
     optional.add_argument('-suffix', '--mask_suffix', type=str, default="pre_mask", help='Suffix of Mask')
+    optional.add_argument('-class', '--num_class', type=int, default=7, help='Number of Class for Model Input')
     optional.add_argument('-slice', '--input_slice', type=int, default=3, help='Number of Slice for Model Input')
     optional.add_argument('-conv', '--conv_block', type=int, default=5, help='Number of UNet Block')
     optional.add_argument('-kernel', '--kernel_root', type=int, default=16, help='Number of the Root of Kernel')
@@ -29,10 +30,10 @@ if __name__=='__main__':
     args = parser.parse_args()
     # Define whether show slice results
     
-    train_model=UNet2d(dim_in=args.input_slice, num_class=7, num_conv_block=args.conv_block, kernel_root=args.kernel_root)
+    train_model=UNet2d(dim_in=args.input_slice, num_class=args.num_class, num_conv_block=args.conv_block, kernel_root=args.kernel_root)
     checkpoint=torch.load(args.predict_model, map_location={'cuda:0':'cpu'})
     train_model.load_state_dict(checkpoint['state_dict'])
     model=nn.Sequential(train_model, nn.Softmax2d())
 
-    predict_volumes(model, cimg_in=args.input_t1w, bmsk_in=None, rescale_dim=args.rescale_dim, save_dice=False,
+    predict_volumes(model, cimg_in=args.input_t1w, bmsk_in=None, rescale_dim=args.rescale_dim, num_class=args.num_class, save_dice=False,
             save_nii=True, nii_outdir=args.out_dir, suffix=args.mask_suffix)

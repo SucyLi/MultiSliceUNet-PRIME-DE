@@ -123,7 +123,7 @@ class UNet3d(nn.Module):
 
 class UNet2d(nn.Module):
     def __init__(self, 
-            dim_in=6, num_class=2, num_conv_block=3, kernel_root=4, 
+            dim_in=6, num_class=7, num_conv_block=3, kernel_root=4, 
             use_bn=True): # 
         super(UNet2d, self).__init__()
         self.layers=dict()

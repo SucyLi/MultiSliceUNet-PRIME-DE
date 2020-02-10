@@ -5,7 +5,7 @@ from dataset import BlockDataset, VolumeDataset
 from torch.utils.data import DataLoader
 from torch.utils.data.sampler import SubsetRandomSampler
 from torch.autograd import Variable
-from loss import DiceLoss
+# from loss import DiceLoss
 import torch
 import torch.nn as nn
 import torch.backends.cudnn as cudnn
@@ -28,6 +28,7 @@ if __name__=='__main__':
     optional.add_argument('-vt1w', '--validate_t1w', type=str, help='Validation T1w Directory')
     optional.add_argument('-vmsk', '--validate_msk', type=str, help='Validation Mask Directory')
     optional.add_argument('-init', '--init_model', type=str, help='Init Model')
+    optional.add_argument('-class', '--num_class', type=int, default=7, help='Number of Class for Model Input')
     optional.add_argument('-slice', '--input_slice', type=int, default=3, help='Number of Slice for Model Input')
     optional.add_argument('-conv', '--conv_block', type=int, default=5, help='Number of UNet Block')
     optional.add_argument('-rescale', '--rescale_dim', type=int, default=256, help='Number of the Root of Kernel')
@@ -52,7 +53,7 @@ if __name__=='__main__':
         print("NOTE: Do not use validate dataset.")
     
     use_gpu=torch.cuda.is_available()
-    model=UNet2d(dim_in=args.input_slice, num_class=7, num_conv_block=args.conv_block, kernel_root=args.kernel_root)
+    model=UNet2d(dim_in=args.input_slice, num_class=args.num_class, num_conv_block=args.conv_block, kernel_root=args.kernel_root)
     if isinstance(args.init_model, str):
         if not os.path.exists(args.init_model):
             print("Invalid init model, please check again!")
@@ -92,7 +93,7 @@ if __name__=='__main__':
     if use_validate:
         valid_model=nn.Sequential(model, nn.Softmax2d())
         dice_dict=predict_volumes(valid_model, rimg_in=None, cimg_in=args.validate_t1w, bmsk_in=args.validate_msk, 
-            rescale_dim=args.rescale_dim, num_slice=args.input_slice, save_nii=False, save_dice=True)
+            rescale_dim=args.rescale_dim, num_class=args.num_class, num_slice=args.input_slice, save_nii=False, save_dice=True)
         dice_array=np.array([v for v in dice_dict.values()])
         DL_Dict["origin_dice"]=dice_array
         print("Origin Dice: %.4f +/- %.4f" % (dice_array.mean(), dice_array.std()))
@@ -101,7 +102,7 @@ if __name__=='__main__':
         lossSs_v=[]
         print("Begin Epoch %d" % epoch)
         for i, (cimg, bmsk) in enumerate(volume_loader):
-            block_dataset=BlockDataset(rimg=cimg, bfld=None, bmsk=bmsk, num_slice=args.input_slice, rescale_dim=args.rescale_dim)
+            block_dataset=BlockDataset(rimg=cimg, bfld=None, bmsk=bmsk, num_class=args.num_class, num_slice=args.input_slice, rescale_dim=args.rescale_dim)
             block_loader=DataLoader(dataset=block_dataset, batch_size=blk_batch_size, shuffle=True, num_workers=0)
             for j, (cimg_blk, bmsk_blk) in enumerate(block_loader):
                 
@@ -142,7 +143,7 @@ if __name__=='__main__':
     
         if use_validate:
             valid_model=nn.Sequential(model, nn.Softmax2d())
-            dice_dict=predict_volumes(valid_model, rimg_in=None, cimg_in=args.validate_t1w, bmsk_in=args.validate_msk, save_dice=True)
+            dice_dict=predict_volumes(valid_model, rimg_in=None, cimg_in=args.validate_t1w, bmsk_in=args.validate_msk, num_class=args.num_class, save_dice=True)
             dice_array=np.array([v for v in dice_dict.values()])
             dice_list.append(dice_array)
             print("\tEpoch: %d; Dice: %.4f +/- %.4f; Loss: %.4f" % (epoch, dice_array.mean(), dice_array.std(), loss))

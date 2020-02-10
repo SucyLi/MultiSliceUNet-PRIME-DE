@@ -232,8 +232,14 @@ def predict_volumes(model, rimg_in=None, cimg_in=None, bmsk_in=None, suffix="pre
             
             if not os.path.exists(nii_outdir):
                 os.mkdir(nii_outdir)
+            
             out_path=os.path.join(nii_outdir, t1w_name+"_"+suffix+".nii.gz")
             write_nifti(np.array(pr_bmsk_final, dtype=np.float32), t1w_aff, t1w_shape, out_path)
+
+            # plot probabiltiy maps 
+            # for i_class in range(0,num_class):
+            #     out_path=os.path.join(nii_outdir, t1w_name+"_"+suffix+"_"+str(i_class)+".nii.gz")
+            #     write_nifti(np.array(pr_bmsk[i_class,:,:,:], dtype=np.float32), t1w_aff, t1w_shape, out_path)
 
         if save_dice:
             dice_dict[t1w_name]=dice
