@@ -327,7 +327,7 @@ class BlockDataset(data.Dataset):
             return rimg_blk, bfld_blk, bmsk_blk
 
         if isinstance(self.bmsk, torch.Tensor):
-            print("slice shape " + str(slice_shape))
+            # print("slice shape " + str(slice_shape))
 
             # expand mask/t1w dimension here?!!!
             bmsk_blk=torch.zeros([self.num_class, self.num_slice, extend_dim, extend_dim], dtype=torch.float)
@@ -336,15 +336,18 @@ class BlockDataset(data.Dataset):
 
             for i in range(0, self.num_class):
                 a = bmsk_tmp_np==i
-                tmsk_tmp = bmsk_tmp_np * (a * 1)
-                print("tissue mask shape "+str(tmsk_tmp.shape))
+                if i == 0:
+                    tmsk_tmp = (1 + bmsk_tmp_np) * (a * 1) 
+                else:
+                    tmsk_tmp = bmsk_tmp_np * (a * 1)
+                # print("tissue mask shape "+str(tmsk_tmp.shape))
                 bmsk_blk_np[i, :, :slice_shape[0], :slice_shape[1]] = tmsk_tmp # How to do with torch tensor?
             
             bmsk_blk=torch.from_numpy(bmsk_blk_np)
             
             # bmsk_blk=torch.zeros([self.num_slice, extend_dim, extend_dim], dtype=torch.long) 
             # bmsk_blk[:, :slice_shape[0], :slice_shape[1]]=bmsk_tmp
-            print("bmsk_blk " + str(bmsk_blk.shape))
+            # print("bmsk_blk " + str(bmsk_blk.shape))
             return rimg_blk, bmsk_blk
 
         return rimg_blk
