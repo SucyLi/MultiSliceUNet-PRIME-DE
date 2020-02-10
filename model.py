@@ -123,10 +123,11 @@ class UNet3d(nn.Module):
 
 class UNet2d(nn.Module):
     def __init__(self, 
-            dim_in=6, num_conv_block=3, kernel_root=4, 
-            use_bn=True):
+            dim_in=6, num_class=2, num_conv_block=3, kernel_root=4, 
+            use_bn=True): # 
         super(UNet2d, self).__init__()
         self.layers=dict()
+        # self.num_class=num_class
         self.num_conv_block=num_conv_block
         # Conv Layers
         for n in range(num_conv_block):
@@ -142,7 +143,8 @@ class UNet2d(nn.Module):
             setattr(self, "conv%dm" % (i), Conv2dBlock(kernel_root*(2**i), kernel_root*(2**(i-1))))    
         setattr(self, "max_pool", nn.MaxPool2d(2))
         #setattr(self, "out_layer", nn.Sequential(nn.Conv2d(kernel_root, 2, 3, 1, 1), nn.Softmax2d()))
-        setattr(self, "out_layer", nn.Conv2d(kernel_root, 2, 3, 1, 1))
+        # XL: in_channels=kernel_root, out_channels=2, kernel_size=3, stride=1, padding=1?
+        setattr(self, "out_layer", nn.Conv2d(kernel_root, num_class, 3, 1, 1))  
         
         # Weight Initialization
         self.apply(self.weights_init)
@@ -299,12 +301,12 @@ class MultiSliceModel(nn.Module):
         return out
 
 if __name__=='__main__':
-    model=UNet2d(dim_in=3)
+    model=UNet2d(dim_in=3,num_class=7)
     
-    x=Variable(torch.rand(2, 3, 256, 256))
+    x=Variable(torch.rand(1, 3, 256, 256))
     
-    model.cuda()
-    x=x.cuda()
+    # model.cuda()
+    # x=x.cuda()
 
     h_x=model(x)
     print(h_x.shape)

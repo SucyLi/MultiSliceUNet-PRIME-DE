@@ -125,11 +125,21 @@ class VolumeDataset(data.Dataset):
             bfld=torch.from_numpy(bfld)
             Out.append(blfd)
 
-
         if isinstance(self.bmsk_files, list):
             bmsk_nii=nib.load(os.path.join(self.bmsk_dir, self.bmsk_files[index]))
-            bmsk=np.array(bmsk_nii.get_data()>0, dtype=np.int64)
+
+            # temp = bmsk_nii.get_data()>0 # will only output 0/1
+            temp = bmsk_nii.get_data()
+            # print(type(temp))
+            # print("brain mask > 0 " + str(temp.shape))
+
+            bmsk=np.array(temp, dtype=np.int64)
+
+            # print("brain mask shape " + str(bmsk.shape))
+            
             bmsk=torch.from_numpy(bmsk)
+            # print("brain mask out shape " + str(bmsk.shape))
+
             Out.append(bmsk)
 
             self.cur_bmsk_nii=bmsk_nii
@@ -145,6 +155,7 @@ class BlockDataset(data.Dataset):
         rimg=None,
         bfld=None,
         bmsk=None,
+        num_class=7,
         num_slice=3,
         rescale_dim=256):
         super(BlockDataset, self).__init__()
@@ -170,7 +181,12 @@ class BlockDataset(data.Dataset):
             uns_bmsk=nn.functional.interpolate(uns_bmsk, scale_factor=rescale_factor, mode="nearest")
             bmsk=torch.squeeze(uns_bmsk.long(), 0)
         
+        # print("brain mask "+str(bmsk.shape))
+        
         rescale_shape=rimg.data[0].shape
+
+        # print("rescale shape "+str(rescale_shape))
+
         slist0=list()
         for i in range(rescale_shape[0]-num_slice+1):
             slist0.append(range(i, i+num_slice))
@@ -185,6 +201,9 @@ class BlockDataset(data.Dataset):
         for i in range(rescale_shape[2]-num_slice+1):
             slist2.append(range(i, i+num_slice))
         self.slist2=slist2
+
+        # print("slist0 length "+str(len(self.slist0)))
+        # print("slist1 length "+str(len(self.slist1)))
         
         self.rimg=rimg
         self.bfld=bfld
@@ -193,6 +212,7 @@ class BlockDataset(data.Dataset):
         self.batch_size=rimg.shape[0]
         self.batch_len=len(self.slist0)+len(self.slist1)+len(self.slist2)
         self.num_slice=num_slice
+        self.num_class=num_class
         self.rescale_dim=rescale_dim
         self.rescale_factor=rescale_factor
         self.rescale_shape=rescale_shape
@@ -239,8 +259,15 @@ class BlockDataset(data.Dataset):
     def __getitem__(self, index):
         bind=int(index/self.batch_len)
         index=index%self.batch_len
+        # print("batch ind "+str(bind))
+        
+
         if index<len(self.slist0):
+            # print("***")
+
             sind=self.slist0[index]
+            # print("index "+str(index))
+            # print("sind "+str(sind))
 
             rimg_tmp=self.rimg.data[bind][sind, :, :]
 
@@ -249,8 +276,13 @@ class BlockDataset(data.Dataset):
 
             if isinstance(self.bmsk, torch.Tensor):
                 bmsk_tmp=self.bmsk.data[bind][sind, :, :]
+            # print("bmsk_tmp "+str(bmsk_tmp.shape))
         elif index<len(self.slist1)+len(self.slist0):
+            # print("*********")
+            
             sind=self.slist1[index-len(self.slist0)]
+            # print("index "+str(index))
+            # print("sind "+str(sind))
 
             rimg_tmp=self.rimg.data[bind][:, sind, :]
             rimg_tmp=rimg_tmp.permute([1, 0, 2])
@@ -262,8 +294,13 @@ class BlockDataset(data.Dataset):
             if isinstance(self.bmsk, torch.Tensor):
                 bmsk_tmp=self.bmsk.data[bind][:, sind, :]
                 bmsk_tmp=bmsk_tmp.permute([1, 0, 2])
+            # print("bmsk_tmp "+str(bmsk_tmp.shape))
         else:
+            # print("***************************")
+
             sind=self.slist2[index-len(self.slist0)-len(self.slist1)]
+            # print("index "+str(index))
+            # print("sind "+str(sind))
 
             rimg_tmp=self.rimg.data[bind][:, :, sind]
             rimg_tmp=rimg_tmp.permute([2, 0, 1])
@@ -275,6 +312,7 @@ class BlockDataset(data.Dataset):
             if isinstance(self.bmsk, torch.Tensor):
                 bmsk_tmp=self.bmsk.data[bind][:, :, sind]
                 bmsk_tmp=bmsk_tmp.permute([2, 0, 1])
+            # print("bmsk_tmp "+str(bmsk_tmp.shape))
 
         extend_dim=self.rescale_dim
         slice_shape=rimg_tmp.data[0].shape
@@ -289,18 +327,37 @@ class BlockDataset(data.Dataset):
             return rimg_blk, bfld_blk, bmsk_blk
 
         if isinstance(self.bmsk, torch.Tensor):
-            bmsk_blk=torch.zeros([self.num_slice, extend_dim, extend_dim], dtype=torch.long)
-            bmsk_blk[:, :slice_shape[0], :slice_shape[1]]=bmsk_tmp
+            print("slice shape " + str(slice_shape))
+
+            # expand mask/t1w dimension here?!!!
+            bmsk_blk=torch.zeros([self.num_class, self.num_slice, extend_dim, extend_dim], dtype=torch.float)
+            bmsk_blk_np = bmsk_blk.numpy()
+            bmsk_tmp_np = bmsk_tmp.numpy()
+
+            for i in range(0, self.num_class):
+                a = bmsk_tmp_np==i
+                tmsk_tmp = bmsk_tmp_np * (a * 1)
+                print("tissue mask shape "+str(tmsk_tmp.shape))
+                bmsk_blk_np[i, :, :slice_shape[0], :slice_shape[1]] = tmsk_tmp # How to do with torch tensor?
+            
+            bmsk_blk=torch.from_numpy(bmsk_blk_np)
+            
+            # bmsk_blk=torch.zeros([self.num_slice, extend_dim, extend_dim], dtype=torch.long) 
+            # bmsk_blk[:, :slice_shape[0], :slice_shape[1]]=bmsk_tmp
+            print("bmsk_blk " + str(bmsk_blk.shape))
             return rimg_blk, bmsk_blk
 
         return rimg_blk
 
 
 if __name__ == '__main__':
-    volume_dataset=VolumeDataset(rimg_in=None, cimg_in='../site-ucdavis/TrainT1w', bmsk_in='../site-ucdavis/TrainMask')
+    volume_dataset=VolumeDataset(rimg_in=None, cimg_in='../data/human_init_test/train/t1w', bmsk_in='../data/human_init_test/train/mask')
     volume_loader=data.DataLoader(dataset=volume_dataset, batch_size=1, shuffle=True)
     for i, (cimg, bmsk) in enumerate(volume_loader):
-        block_dataset=BlockDataset(rimg=cimg, bfld=None, bmsk=bmsk, num_slice=3, rescale_dim=256)
-        block_loader=data.DataLoader(dataset=block_dataset, batch_size=20, shuffle=True)
+        block_dataset=BlockDataset(rimg=cimg, bfld=None, bmsk=bmsk, num_slice=3, num_class=7, rescale_dim=256)
+        block_loader=data.DataLoader(dataset=block_dataset, batch_size=1, shuffle=True)
         for j, (cimg_blk, bmsk_blk) in enumerate(block_loader):
-            print(bmsk_blk.shape)
+            # if j==0:
+            #     bmsk_blk.__getitem__
+            print(bmsk_blk.shape) #(1, 3, 256, 256)
+            print(np.unique(bmsk_blk.numpy()))

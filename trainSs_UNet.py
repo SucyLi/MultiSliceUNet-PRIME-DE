@@ -5,6 +5,7 @@ from dataset import BlockDataset, VolumeDataset
 from torch.utils.data import DataLoader
 from torch.utils.data.sampler import SubsetRandomSampler
 from torch.autograd import Variable
+from loss import DiceLoss
 import torch
 import torch.nn as nn
 import torch.backends.cudnn as cudnn
@@ -51,7 +52,7 @@ if __name__=='__main__':
         print("NOTE: Do not use validate dataset.")
     
     use_gpu=torch.cuda.is_available()
-    model=UNet2d(dim_in=args.input_slice, num_conv_block=args.conv_block, kernel_root=args.kernel_root)
+    model=UNet2d(dim_in=args.input_slice, num_class=7, num_conv_block=args.conv_block, kernel_root=args.kernel_root)
     if isinstance(args.init_model, str):
         if not os.path.exists(args.init_model):
             print("Invalid init model, please check again!")
@@ -67,14 +68,18 @@ if __name__=='__main__':
     optimizerSs=optim.Adam(model.parameters(), lr=args.learning_rate)
     
     # loss function
-    criterionSs=nn.CrossEntropyLoss()
+    # criterionSs=nn.CrossEntropyLoss() # include softmax 
+    criterionSs=nn.MultiLabelSoftMarginLoss()
+    # criterionSs=nn.BCELoss()
+    # criterionSs=DiceLoss()
+
     if use_gpu:
         criterionSs.cuda()
     
     volume_dataset=VolumeDataset(rimg_in=None, cimg_in=args.train_t1w, bmsk_in=args.train_msk)
     volume_loader=DataLoader(dataset=volume_dataset, batch_size=1, shuffle=True, num_workers=0)
     
-    blk_batch_size=20
+    blk_batch_size=1
     
     if not os.path.exists(args.out_dir):
         os.mkdir(args.out_dir)
@@ -99,12 +104,21 @@ if __name__=='__main__':
             block_dataset=BlockDataset(rimg=cimg, bfld=None, bmsk=bmsk, num_slice=args.input_slice, rescale_dim=args.rescale_dim)
             block_loader=DataLoader(dataset=block_dataset, batch_size=blk_batch_size, shuffle=True, num_workers=0)
             for j, (cimg_blk, bmsk_blk) in enumerate(block_loader):
-                bmsk_blk=bmsk_blk[:,1,:,:]
+                
+                # loop through all masks, expand mask dimension to have one more label dimension [0,0,0,0,0,0,1]?
+                print("before bmsk_blk: " + str(bmsk_blk.shape))
+                # bmsk_blk=bmsk_blk[:,1,:,:]
+                bmsk_blk=bmsk_blk[:,:,1,:,:]
+                print("after bmsk_blk: " + str(bmsk_blk.shape))
+
                 cimg_blk, bmsk_blk=Variable(cimg_blk), Variable(bmsk_blk)
                 if use_gpu:
                     cimg_blk=cimg_blk.cuda()
                     bmsk_blk=bmsk_blk.cuda()
-                pr_bmsk_blk=model(cimg_blk)
+                pr_bmsk_blk=model(cimg_blk) # output
+
+                print("pr_bmsk_blk: " + str(pr_bmsk_blk.shape))
+                # import pdb;pdb.set_trace()
     
                 # Loss Backward
                 lossSs=criterionSs(pr_bmsk_blk, bmsk_blk)
