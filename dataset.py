@@ -337,11 +337,9 @@ class BlockDataset(data.Dataset):
             for i in range(0, self.num_class):
                 a = bmsk_tmp_np==i
                 if i == 0:
-                    tmsk_tmp = (10 + bmsk_tmp_np) * (a * 1) 
-                elif i == 6:
-                    tmsk_tmp = (bmsk_tmp_np * 2) * (a * 1) # Does it help eye intensity? 
+                    tmsk_tmp = (self.num_class + 1 + bmsk_tmp_np) * (a * 1) 
                 else:
-                tmsk_tmp = bmsk_tmp_np * (a * 1)
+                    tmsk_tmp = bmsk_tmp_np * (a * 1)
 
                 # print("tissue mask shape "+str(tmsk_tmp.shape))
                 bmsk_blk_np[i, :, :slice_shape[0], :slice_shape[1]] = tmsk_tmp # How to do with torch tensor?
