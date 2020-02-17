@@ -106,7 +106,7 @@ if __name__=='__main__':
             block_loader=DataLoader(dataset=block_dataset, batch_size=blk_batch_size, shuffle=True, num_workers=0)
             for j, (cimg_blk, bmsk_blk) in enumerate(block_loader):
                 
-                # loop through all masks, expand mask dimension to have one more label dimension [0,0,0,0,0,0,1]?
+                # loop through all masks
                 # print("before bmsk_blk: " + str(bmsk_blk.shape))
                 # bmsk_blk=bmsk_blk[:,1,:,:]
                 bmsk_blk=bmsk_blk[:,:,1,:,:]

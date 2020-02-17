@@ -124,7 +124,7 @@ class UNet3d(nn.Module):
 class UNet2d(nn.Module):
     def __init__(self, 
             dim_in=6, num_class=7, num_conv_block=3, kernel_root=4, 
-            use_bn=True): # 
+            use_bn=True): 
         super(UNet2d, self).__init__()
         self.layers=dict()
         # self.num_class=num_class
@@ -141,7 +141,7 @@ class UNet2d(nn.Module):
             i=num_conv_block-1-n
             setattr(self, "upconv%dto%d" % (i+1, i), UpConv2dBlock(kernel_root*(2**i), kernel_root*(2**(i-1))))
             setattr(self, "conv%dm" % (i), Conv2dBlock(kernel_root*(2**i), kernel_root*(2**(i-1))))    
-        setattr(self, "max_pool", nn.MaxPool2d(2))
+        setattr(self, "max_pool", nn.MaxPool2d(2)) # >> maxout 
         #setattr(self, "out_layer", nn.Sequential(nn.Conv2d(kernel_root, 2, 3, 1, 1), nn.Softmax2d()))
         # XL: in_channels=kernel_root, out_channels=2, kernel_size=3, stride=1, padding=1?
         setattr(self, "out_layer", nn.Conv2d(kernel_root, num_class, 3, 1, 1))  

@@ -2,8 +2,8 @@ import nibabel as nb
 from scipy.spatial import distance
 from scipy.stats import pearsonr
 
-file1 = '/Users/xinhui.li/Documents/research/data/out/csf/959574_3T_T1w_MPR1_pre_mask.nii.gz'
-file2 = '/Users/xinhui.li/Documents/research/data/human/test/mask_csf/959574_final_contr.nii.gz'
+file1 = '/Users/xinhui.li/Documents/research/data/out/aws/monkey/wm/head_in_brain_pre_mask.nii.gz'
+file2 = '/Users/xinhui.li/Documents/research/data/monkey/test/segment_wm_rpi.nii.gz'
 
 img1 = nb.load(file1)
 data1 = img1.get_fdata()

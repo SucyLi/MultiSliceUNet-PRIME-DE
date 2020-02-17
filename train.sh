@@ -1,0 +1,16 @@
+# local
+python trainSs_UNet.py -trt1w /Users/xinhui.li/Documents/monkey-segmentation/data/human_init_test/train/t1w -trmsk /Users/xinhui.li/Documents/monkey-segmentation/data/human_init_test/train/mask -out /Users/xinhui.li/Documents/monkey-segmentation/data/out/test -vt1w /Users/xinhui.li/Documents/monkey-segmentation/data/human_init_test/val/t1w -vmsk /Users/xinhui.li/Documents/monkey-segmentation/data/human_init_test/val/mask -epoch 1 #-class 3
+# python trainSs_UNet.py -trt1w /Users/xinhui.li/Documents/monkey-segmentation/data/monkey/train/t1w -trmsk /Users/xinhui.li/Documents/monkey-segmentation/data/monkey/train/mask_wm -out /Users/xinhui.li/Documents/monkey-segmentation/data/out/monkey/wm -epoch 5 -init /Users/xinhui.li/Documents/monkey-segmentation/data/out/wm/model-04-epoch
+
+# python trainSs_UNet.py -trt1w /Users/xinhui.li/Documents/monkey-segmentation/data/human/train/t1w -trmsk /Users/xinhui.li/Documents/monkey-segmentation/data/human/train/mask_gm -out /Users/xinhui.li/Documents/monkey-segmentation/data/out/gm -vt1w /Users/xinhui.li/Documents/monkey-segmentation/data/human/val/t1w -vmsk /Users/xinhui.li/Documents/monkey-segmentation/data/human/val/mask_gm -epoch 5
+# python trainSs_UNet.py -trt1w /Users/xinhui.li/Documents/monkey-segmentation/data/monkey/train/t1w -trmsk /Users/xinhui.li/Documents/monkey-segmentation/data/monkey/train/mask_gm -out /Users/xinhui.li/Documents/monkey-segmentation/data/out/monkey/gm -epoch 5 -init /Users/xinhui.li/Documents/monkey-segmentation/data/out/gm/model-04-epoch
+
+# python trainSs_UNet.py -trt1w /Users/xinhui.li/Documents/monkey-segmentation/data/human/train/t1w -trmsk /Users/xinhui.li/Documents/monkey-segmentation/data/human/train/mask_csf -out /Users/xinhui.li/Documents/monkey-segmentation/data/out/csf -vt1w /Users/xinhui.li/Documents/monkey-segmentation/data/human/val/t1w -vmsk /Users/xinhui.li/Documents/monkey-segmentation/data/human/val/mask_csf -epoch 5 -init /Users/xinhui.li/Documents/monkey-segmentation/data/out/csf/model-04-epoch-init
+# python trainSs_UNet.py -trt1w /Users/xinhui.li/Documents/monkey-segmentation/data/monkey/train/t1w -trmsk /Users/xinhui.li/Documents/monkey-segmentation/data/monkey/train/mask_csf -out /Users/xinhui.li/Documents/monkey-segmentation/data/out/monkey/csf -epoch 5 -init /Users/xinhui.li/Documents/monkey-segmentation/data/out/csf/model-04-epoch
+
+# aws
+# python trainSs_UNet.py -trt1w /media/ebs/data/hcp/train/t1w -trmsk /media/ebs/data/hcp/train/mask_wm -vt1w /media/ebs/data/hcp/valid/t1w -vmsk /media/ebs/data/hcp/valid/mask_wm -out /media/ebs/out/hcp/wm -epoch 10
+
+# python trainSs_UNet.py -trt1w /media/ebs/data/hcp/train/t1w -trmsk /media/ebs/data/hcp/train/mask_gm -vt1w /media/ebs/data/hcp/valid/t1w -vmsk /media/ebs/data/hcp/valid/mask_gm -out /media/ebs/out/hcp/gm -epoch 10
+
+# python trainSs_UNet.py -trt1w /media/ebs/data/hcp/train/t1w -trmsk /media/ebs/data/hcp/train/mask_csf -vt1w /media/ebs/data/hcp/valid/t1w -vmsk /media/ebs/data/hcp/valid/mask_csf -out /media/ebs/out/hcp/csf -epoch 10

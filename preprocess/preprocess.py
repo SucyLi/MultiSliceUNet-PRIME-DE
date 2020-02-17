@@ -1,13 +1,19 @@
 import os, subprocess
 
 # local
-# data_path = '/Users/xinhui.li/Documents/research/data/hcp/t1w'
-# data_path2 = '/Users/xinhui.li/Documents/research/data/hcp/preprocessed'
+data_path = '/Users/xinhui.li/Documents/research/data/hcp/t1w_tbd'
+data_path2 = '/Users/xinhui.li/Documents/research/data/hcp/n4'
 
 # aws
-data_path = '/media/ebs/t1w'
-data_path2 = '/media/ebs/preprocessed'
+# data_path = '/media/ebs/t1w'
+# data_path2 = '/media/ebs/preprocessed'
+
+# Lisa
+# data_path = '/home/xli/Documents/t1w'
+# data_path2 = '/home/xli/Documents/preprocessed'
+
 file_list = os.listdir(data_path)
+file_list.sort()
 
 for n, i in enumerate(file_list):
     print n, i
