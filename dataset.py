@@ -157,7 +157,8 @@ class BlockDataset(data.Dataset):
         bmsk=None,
         num_class=7,
         num_slice=3,
-        rescale_dim=256):
+        rescale_dim=256,
+        loss='cross_entropy'):
         super(BlockDataset, self).__init__()
         
         if isinstance(bmsk, torch.Tensor) and rimg.shape!=bmsk.shape:
@@ -217,6 +218,7 @@ class BlockDataset(data.Dataset):
         self.rescale_factor=rescale_factor
         self.rescale_shape=rescale_shape
         self.raw_shape=raw_shape
+        self.loss=loss
     
     def get_rescale_factor(self):
         return self.rescale_factor
@@ -330,24 +332,20 @@ class BlockDataset(data.Dataset):
             # print("slice shape " + str(slice_shape))
 
             # expand mask/t1w dimension here?!!!
+            # if self.loss=='cross_entropy':
+            #     bmsk_blk=torch.zeros([self.num_slice, extend_dim, extend_dim], dtype=torch.long) 
+            #     bmsk_blk[:, :slice_shape[0], :slice_shape[1]]=bmsk_tmp
+            # elif self.loss=='multi_label_soft_margin':
             bmsk_blk=torch.zeros([self.num_class, self.num_slice, extend_dim, extend_dim], dtype=torch.float)
             bmsk_blk_np = bmsk_blk.numpy()
             bmsk_tmp_np = bmsk_tmp.numpy()
-
+            # TODO fix background 
             for i in range(0, self.num_class):
                 a = bmsk_tmp_np==i
-                if i == 0:
-                    tmsk_tmp = (self.num_class + 1 + bmsk_tmp_np) * (a * 1) 
-                else:
-                    tmsk_tmp = bmsk_tmp_np * (a * 1)
-
+                tmsk_tmp = a * 1
                 # print("tissue mask shape "+str(tmsk_tmp.shape))
                 bmsk_blk_np[i, :, :slice_shape[0], :slice_shape[1]] = tmsk_tmp # How to do with torch tensor?
-            
             bmsk_blk=torch.from_numpy(bmsk_blk_np)
-            
-            # bmsk_blk=torch.zeros([self.num_slice, extend_dim, extend_dim], dtype=torch.long) 
-            # bmsk_blk[:, :slice_shape[0], :slice_shape[1]]=bmsk_tmp
             # print("bmsk_blk " + str(bmsk_blk.shape))
             return rimg_blk, bmsk_blk
 

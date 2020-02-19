@@ -196,7 +196,7 @@ def predict_volumes(model, rimg_in=None, cimg_in=None, bmsk_in=None, suffix="pre
         pr_bmsk=pr_bmsk.numpy()
 
         # print("final prob mask " + str(pr_bmsk.shape))
-
+        # import pdb;pdb.set_trace()
         # pr_bmsk_final=extract_large_comp(pr_bmsk>0.5)
         
         # trial 0
@@ -206,7 +206,6 @@ def predict_volumes(model, rimg_in=None, cimg_in=None, bmsk_in=None, suffix="pre
         # pr_bmsk_final=np.sum(pr_bmsk_final,axis=0)
 
         # trial 1 
-        # TODO take argmax across tissue class dimension 
         pr_bmsk_final = np.argmax(pr_bmsk, axis=0)
 
         if isinstance(bmsk, torch.Tensor):
@@ -214,8 +213,6 @@ def predict_volumes(model, rimg_in=None, cimg_in=None, bmsk_in=None, suffix="pre
             dice=estimate_dice(bmsk, pr_bmsk_final)
             if verbose:
                 print(dice)
-
-        # import pdb;pdb.set_trace()
 
         t1w_nii=volume_dataset.getCurCimgNii()
         t1w_path=t1w_nii.get_filename()
@@ -233,13 +230,13 @@ def predict_volumes(model, rimg_in=None, cimg_in=None, bmsk_in=None, suffix="pre
             if not os.path.exists(nii_outdir):
                 os.mkdir(nii_outdir)
             
-            # out_path=os.path.join(nii_outdir, t1w_name+"_"+suffix+".nii.gz")
-            # write_nifti(np.array(pr_bmsk_final, dtype=np.float32), t1w_aff, t1w_shape, out_path)
+            out_path=os.path.join(nii_outdir, t1w_name+"_"+suffix+".nii.gz")
+            write_nifti(np.array(pr_bmsk_final, dtype=np.float32), t1w_aff, t1w_shape, out_path)
 
             # plot probabiltiy maps 
-            for i_class in range(0,num_class):
-                out_path=os.path.join(nii_outdir, t1w_name+"_"+suffix+"_"+str(i_class)+".nii.gz")
-                write_nifti(np.array(pr_bmsk[i_class,:,:,:], dtype=np.float32), t1w_aff, t1w_shape, out_path)
+            # for i_class in range(0,num_class):
+            #     out_path=os.path.join(nii_outdir, t1w_name+"_"+suffix+"_"+str(i_class)+".nii.gz")
+            #     write_nifti(np.array(pr_bmsk[i_class,:,:,:], dtype=np.float32), t1w_aff, t1w_shape, out_path)
 
         if save_dice:
             dice_dict[t1w_name]=dice

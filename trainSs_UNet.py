@@ -31,10 +31,11 @@ if __name__=='__main__':
     optional.add_argument('-class', '--num_class', type=int, default=7, help='Number of Class for Model Input')
     optional.add_argument('-slice', '--input_slice', type=int, default=3, help='Number of Slice for Model Input')
     optional.add_argument('-conv', '--conv_block', type=int, default=5, help='Number of UNet Block')
-    optional.add_argument('-rescale', '--rescale_dim', type=int, default=256, help='Number of the Root of Kernel')
+    optional.add_argument('-rescale', '--rescale_dim', type=int, default=256, help='Rescale Dimension')
     optional.add_argument('-kernel', '--kernel_root', type=int, default=16, help='Number of the Root of Kernel')
     optional.add_argument('-epoch', '--num_epoch', type=int, default=40, help='Number of Epoch')
-    optional.add_argument('-lr', '--learning_rate', type=float, default=0.0001, help='Number of Epoch')
+    optional.add_argument('-lr', '--learning_rate', type=float, default=0.0001, help='Learning Rate')
+    optional.add_argument('-loss', '--loss_function', type=str, default='cross_entropy', help='Loss Function: cross_entropy or multi_label_soft_margin')
     parser._action_groups.append(optional)
 
     if len(sys.argv)==1:
@@ -69,7 +70,9 @@ if __name__=='__main__':
     optimizerSs=optim.Adam(model.parameters(), lr=args.learning_rate)
     
     # loss function
-    # criterionSs=nn.CrossEntropyLoss() # include softmax 
+    # if args.loss=='cross_entropy':
+    #     criterionSs=nn.CrossEntropyLoss() # include softmax 
+    # elif args.loss=='multi_label_soft_margin':
     criterionSs=nn.MultiLabelSoftMarginLoss()
     # criterionSs=nn.BCELoss()
     # criterionSs=DiceLoss()
@@ -108,7 +111,9 @@ if __name__=='__main__':
                 
                 # loop through all masks
                 # print("before bmsk_blk: " + str(bmsk_blk.shape))
-                # bmsk_blk=bmsk_blk[:,1,:,:]
+                # if args.loss=='cross_entropy':
+                #     bmsk_blk=bmsk_blk[:,1,:,:]
+                # elif args.loss=='multi_label_soft_margin':
                 bmsk_blk=bmsk_blk[:,:,1,:,:]
                 # print("after bmsk_blk: " + str(bmsk_blk.shape))
 
@@ -120,7 +125,7 @@ if __name__=='__main__':
 
                 # print("pr_bmsk_blk: " + str(pr_bmsk_blk.shape))
                 # import pdb;pdb.set_trace()
-    
+
                 # Loss Backward
                 lossSs=criterionSs(pr_bmsk_blk, bmsk_blk)
                 optimizerSs.zero_grad()
