@@ -12,10 +12,10 @@ if __name__=='__main__':
     parser=argparse.ArgumentParser(description='Skull Stripping', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     optional=parser._action_groups.pop()
     required=parser.add_argument_group('required arguments')
-    # Required Option
+    # Required Options
     required.add_argument('-in', '--input_t1w', type=str, required=True, help='Input T1w Image for Skull Stripping')
     required.add_argument('-model', '--predict_model', required=True, type=str, help='Predict Model')
-    # Optional Option
+    # Optional Options
     optional.add_argument('-out', '--out_dir', type=str, help='Output Dir')
     optional.add_argument('-suffix', '--mask_suffix', type=str, default="pre_mask", help='Suffix of Mask')
     optional.add_argument('-class', '--num_class', type=int, default=7, help='Number of Class for Model Input')
