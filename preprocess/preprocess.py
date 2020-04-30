@@ -1,8 +1,8 @@
 import os, subprocess
 
 # local
-data_path = '/Users/xinhui.li/Documents/monkey-segmentation/data/monkey/PRIME-DE'
-output_path = '/Users/xinhui.li/Documents/monkey-segmentation/data/monkey/PRIME-DE_n4'
+data_path = '/Users/xinhui.li/Documents/monkey-segmentation/data/monkey/site-mountsinai-P/preprocessed_T1'
+output_path = '/Users/xinhui.li/Documents/monkey-segmentation/data/monkey/site-mountsinai-P/preprocessed_T1'
 
 # aws
 # data_path = '/media/ebs/t1w'

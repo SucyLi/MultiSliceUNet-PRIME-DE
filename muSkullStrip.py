@@ -5,6 +5,8 @@ from function import predict_volumes
 from model import UNet2d
 import os, sys
 import argparse
+from quicknat import QuickNat
+from solver import Solver
 
 if __name__=='__main__':
     NoneType=type(None)
@@ -30,10 +32,34 @@ if __name__=='__main__':
     args = parser.parse_args()
     # Define whether show slice results
     
-    train_model=UNet2d(dim_in=args.input_slice, num_class=args.num_class, num_conv_block=args.conv_block, kernel_root=args.kernel_root)
-    checkpoint=torch.load(args.predict_model, map_location={'cuda:0':'cpu'})
-    train_model.load_state_dict(checkpoint['state_dict'])
-    model=nn.Sequential(train_model, nn.Softmax2d())
+    quicknat_model = QuickNat(net_params)
+    solver = Solver(quicknat_model,
+                device=common_params['device'],
+                num_class=args.num_class,
+                optim_args={"lr": train_params['learning_rate'],
+                            "betas": train_params['optim_betas'],
+                            "eps": train_params['optim_eps'],
+                            "weight_decay": train_params['optim_weight_decay']},
+                model_name=common_params['model_name'],
+                exp_name=train_params['exp_name'],
+                labels=data_params['labels'],
+                log_nth=train_params['log_nth'],
+                num_epochs=train_params['num_epochs'],
+                lr_scheduler_step_size=train_params['lr_scheduler_step_size'],
+                lr_scheduler_gamma=train_params['lr_scheduler_gamma'],
+                use_last_checkpoint=train_params['use_last_checkpoint'],
+                log_dir=common_params['log_dir'],
+                exp_dir=common_params['exp_dir'])
 
-    predict_volumes(model, cimg_in=args.input_t1w, bmsk_in=None, rescale_dim=args.rescale_dim, num_class=args.num_class, save_dice=False,
-            save_nii=True, nii_outdir=args.out_dir, suffix=args.mask_suffix)
+    solver.train(train_loader, val_loader)
+    final_model_path = os.path.join(common_params['save_model_dir'], train_params['final_model_file'])
+    quicknat_model.save(final_model_path)
+    print("final model saved @ " + str(final_model_path))
+
+    # train_model=UNet2d(dim_in=args.input_slice, num_class=args.num_class, num_conv_block=args.conv_block, kernel_root=args.kernel_root)
+    # checkpoint=torch.load(args.predict_model, map_location={'cuda:0':'cpu'})
+    # train_model.load_state_dict(checkpoint['state_dict'])
+    # model=nn.Sequential(train_model, nn.Softmax2d())
+
+    # predict_volumes(model, cimg_in=args.input_t1w, bmsk_in=None, rescale_dim=args.rescale_dim, num_class=args.num_class, save_dice=False,
+    #         save_nii=True, nii_outdir=args.out_dir, suffix=args.mask_suffix)
