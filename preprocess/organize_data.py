@@ -1,5 +1,42 @@
-import os, subprocess
+import os, glob, subprocess
 
+data_path = '/media/ebs/data/hcp/validation'
+os.chdir(data_path)
+
+# U-Net to Cerebrum
+t1_path = data_path + '/t1w'
+mask_path = data_path + '/mask'
+t1_list = os.listdir(t1_path)
+
+for t1 in t1_list:
+    sub=t1[0:6]
+    
+    t1 = os.path.join(t1_path, t1)
+
+    try: 
+        mask = glob.glob(os.path.join(mask_path, sub)+'*')[0]
+        
+        os.mkdir(sub)
+        cmd="mv %s ./%s" % (t1, sub)
+        os.system(cmd)
+
+        cmd="mv %s ./%s" % (mask, sub)
+        os.system(cmd)        
+    except IndexError as e:
+        print(sub, " mask not found ***")
+
+cmd="rm -rf ./t1w"
+os.system(cmd)
+
+cmd="rm -rf ./mask"
+os.system(cmd)
+
+
+# Cerebrum to U-Net
+
+
+
+"""
 # human
 data_path = '/Users/xinhui.li/Documents/research/data/HCPdata'
 file_path = os.listdir(data_path)
@@ -27,6 +64,4 @@ for f in file_path:
     subprocess.check_output(cmd6)
 
     os.chdir(cwd)
-
-
-
+"""
