@@ -188,6 +188,7 @@ class BlockDataset(data.Dataset):
 
         # print("rescale shape "+str(rescale_shape))
 
+        # get the index of starting slice
         slist0=list()
         for i in range(rescale_shape[0]-num_slice+1):
             slist0.append(range(i, i+num_slice))
@@ -263,7 +264,6 @@ class BlockDataset(data.Dataset):
         index=index%self.batch_len
         # print("batch ind "+str(bind))
         
-
         if index<len(self.slist0):
             # print("***")
 
@@ -353,6 +353,7 @@ class BlockDataset(data.Dataset):
 
 
 if __name__ == '__main__':
+    # TODO fix bug - can't input rimg_in and cimg_in at the same time, can't send images to rimg_in but cimg_in=None
     volume_dataset=VolumeDataset(rimg_in=None, cimg_in='../data/human_init_test/train/t1w', bmsk_in='../data/human_init_test/train/mask')
     volume_loader=data.DataLoader(dataset=volume_dataset, batch_size=1, shuffle=True)
     for i, (cimg, bmsk) in enumerate(volume_loader):
@@ -361,5 +362,6 @@ if __name__ == '__main__':
         for j, (cimg_blk, bmsk_blk) in enumerate(block_loader):
             # if j==0:
             #     bmsk_blk.__getitem__
+            # import pdb; pdb.set_trace()
             print(bmsk_blk.shape) #(1, 3, 256, 256)
             print(np.unique(bmsk_blk.numpy()))

@@ -49,8 +49,22 @@ def write_nifti(data, aff, shape, out_path):
 def estimate_dice(gt_msk, prt_msk):
     intersection=gt_msk*prt_msk
     dice=2*float(intersection.sum())/float(gt_msk.sum()+prt_msk.sum())
-    
     return dice
+
+def estimate_fn_fp(gt_msk, prt_msk, num_class):
+    msk_shape = prt_msk.shape
+    fn_fp = np.zeros((num_class-1, msk_shape[0], msk_shape[1], msk_shape[2]))
+
+    for i in range(1, num_class):
+        gt = gt_msk == i
+        gt = gt * 1
+
+        prt = prt_msk == i
+        prt = prt * 1
+
+        fn_fp[i-1,:,:,:] = prt - gt
+
+    return fn_fp
 
 def extract_large_comp(prt_msk):
     labs, num_lab=snd.label(prt_msk) # ???
@@ -58,7 +72,6 @@ def extract_large_comp(prt_msk):
     c_size[0]=0
     max_ind=c_size.argmax()
     prt_msk=labs==max_ind
-
     return prt_msk
 
 def predict_volumes(model, rimg_in=None, cimg_in=None, bmsk_in=None, suffix="pre_mask",
@@ -214,6 +227,8 @@ def predict_volumes(model, rimg_in=None, cimg_in=None, bmsk_in=None, suffix="pre
             if verbose:
                 print(dice)
 
+            fn_fp=estimate_fn_fp(bmsk, pr_bmsk_final, num_class)
+
         t1w_nii=volume_dataset.getCurCimgNii()
         t1w_path=t1w_nii.get_filename()
         t1w_dir, t1w_file=os.path.split(t1w_path)
@@ -233,10 +248,18 @@ def predict_volumes(model, rimg_in=None, cimg_in=None, bmsk_in=None, suffix="pre
             out_path=os.path.join(nii_outdir, t1w_name+"_"+suffix+".nii.gz")
             write_nifti(np.array(pr_bmsk_final, dtype=np.float32), t1w_aff, t1w_shape, out_path)
 
+            """
+            if isinstance(bmsk, torch.Tensor):
+                # plot FN/FP maps 
+                # import pdb;pdb.set_trace()
+                for i_class in range(0,num_class-1):
+                    out_path=os.path.join(nii_outdir, t1w_name+"_"+suffix+"_fnfp_"+str(i_class)+".nii.gz")
+                    write_nifti(np.array(fn_fp[i_class,:,:,:], dtype=np.float32), t1w_aff, t1w_shape, out_path)
+            """
             # plot probabiltiy maps 
-            # for i_class in range(0,num_class):
-            #     out_path=os.path.join(nii_outdir, t1w_name+"_"+suffix+"_"+str(i_class)+".nii.gz")
-            #     write_nifti(np.array(pr_bmsk[i_class,:,:,:], dtype=np.float32), t1w_aff, t1w_shape, out_path)
+            for i_class in range(0,num_class):
+                out_path=os.path.join(nii_outdir, t1w_name+"_"+suffix+"_"+str(i_class)+".nii.gz")
+                write_nifti(np.array(pr_bmsk[i_class,:,:,:], dtype=np.float32), t1w_aff, t1w_shape, out_path)
 
         if save_dice:
             dice_dict[t1w_name]=dice
