@@ -5,13 +5,15 @@ import scipy.io as sio
 from scipy.spatial import distance
 from scipy.stats import pearsonr
 
-filepath_pred = '/Users/xinhui.li/Documents/monkey-segmentation/data/out/colab/hbn_test_hnu_train_pT1/*'
-filepath_gt = '/Users/xinhui.li/Documents/monkey-segmentation/data/hbn/test/mask/*'
+# filepath_pred = '/Users/xinhui.li/Documents/monkey-segmentation/data/out/colab/hbn_test_hnu_train_pT1/*'
+# filepath_gt = '/Users/xinhui.li/Documents/monkey-segmentation/data/hbn/test/mask/*'
 
-filelist_pred = glob.glob(filepath_pred)
+# filelist_pred = glob.glob(filepath_pred)
+filelist_pred = ["/Users/xinhui.li/Documents/monkey-segmentation/data/monkey/site-mountsinai-P/site-mountsinai-P_unet2_trained_w_nmt-2mP/sub-032153_sanlm_T1_mean_bc_n4_pre_mask.nii.gz"]
 filelist_pred.sort()
 
-filelist_gt = glob.glob(filepath_gt)
+# filelist_gt = glob.glob(filepath_gt)
+filelist_gt = ["/Users/xinhui.li/Documents/monkey-segmentation/data/monkey/stef/mountsinai-P/mask/sub-032153_mask.nii.gz"]
 filelist_gt.sort()
 
 tissue = ['background','wm','gm','csf','skull','skin','eye']
@@ -31,9 +33,9 @@ for j, pred in enumerate(filelist_pred):
         t2 = d2 * 1
         dice = distance.dice(t1.flatten(), t2.flatten())
         dice_coefficients[i,j] = 1-dice
-        print(pred, t, str(dice_coefficients[i,j]))
+        print(t, str(dice_coefficients[i,j]))
 
-sio.savemat('/Users/xinhui.li/Documents/monkey-segmentation/data/out/colab/hbn_test_hnu_train_pT1/dice.mat', {'dice':dice_coefficients})
+# sio.savemat('/Users/xinhui.li/Documents/monkey-segmentation/data/out/colab/hbn_test_hnu_train_pT1/dice.mat', {'dice':dice_coefficients})
 
 
 # TODO fix NMT monkey mask intensity 
