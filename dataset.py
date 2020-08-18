@@ -167,8 +167,8 @@ class BlockDataset(data.Dataset):
 
         if isinstance(bmsk, torch.Tensor):
             uns_bmsk=torch.unsqueeze(bmsk.float(), 0)
-            uns_bmsk=nn.functional.interpolate(uns_bmsk, scale_factor=rescale_factor, mode="nearest")
-            bmsk=torch.squeeze(uns_bmsk.long(), 0)
+            uns_bmsk=nn.functional.interpolate(uns_bmsk, scale_factor=rescale_factor, mode="trilinear", align_corners=False)
+            bmsk=torch.squeeze(uns_bmsk, 0)
         
         rescale_shape=rimg.data[0].shape
         slist0=list()
@@ -289,7 +289,7 @@ class BlockDataset(data.Dataset):
             return rimg_blk, bfld_blk, bmsk_blk
 
         if isinstance(self.bmsk, torch.Tensor):
-            bmsk_blk=torch.zeros([self.num_slice, extend_dim, extend_dim], dtype=torch.long)
+            bmsk_blk=torch.zeros([self.num_slice, extend_dim, extend_dim], dtype=torch.float32)
             bmsk_blk[:, :slice_shape[0], :slice_shape[1]]=bmsk_tmp
             return rimg_blk, bmsk_blk
 
@@ -297,10 +297,12 @@ class BlockDataset(data.Dataset):
 
 
 if __name__ == '__main__':
-    volume_dataset=VolumeDataset(rimg_in=None, cimg_in='../site-ucdavis/TrainT1w', bmsk_in='../site-ucdavis/TrainMask')
+    volume_dataset=VolumeDataset(rimg_in=None, cimg_in='../data/human_init_test/train/t1w', bmsk_in='../data/human_init_test/train/t2w')
     volume_loader=data.DataLoader(dataset=volume_dataset, batch_size=1, shuffle=True)
     for i, (cimg, bmsk) in enumerate(volume_loader):
         block_dataset=BlockDataset(rimg=cimg, bfld=None, bmsk=bmsk, num_slice=3, rescale_dim=256)
-        block_loader=data.DataLoader(dataset=block_dataset, batch_size=20, shuffle=True)
+        block_loader=data.DataLoader(dataset=block_dataset, batch_size=1, shuffle=True)
         for j, (cimg_blk, bmsk_blk) in enumerate(block_loader):
+            import pdb; pdb.set_trace()
             print(bmsk_blk.shape)
+            print(np.unique(cimg_blk), np.unique(bmsk_blk))

@@ -301,10 +301,10 @@ class MultiSliceModel(nn.Module):
 if __name__=='__main__':
     model=UNet2d(dim_in=3)
     
-    x=Variable(torch.rand(2, 3, 256, 256))
+    x=Variable(torch.rand(1, 3, 256, 256))
     
-    model.cuda()
-    x=x.cuda()
+    # model.cuda()
+    # x=x.cuda()
 
     h_x=model(x)
     print(h_x.shape)
