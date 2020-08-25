@@ -142,7 +142,7 @@ class UNet2d(nn.Module):
             setattr(self, "conv%dm" % (i), Conv2dBlock(kernel_root*(2**i), kernel_root*(2**(i-1))))    
         setattr(self, "max_pool", nn.MaxPool2d(2))
         #setattr(self, "out_layer", nn.Sequential(nn.Conv2d(kernel_root, 2, 3, 1, 1), nn.Softmax2d()))
-        setattr(self, "out_layer", nn.Conv2d(kernel_root, 2, 3, 1, 1))
+        setattr(self, "out_layer", nn.Conv2d(kernel_root, 3, 3, 1, 1))
         
         # Weight Initialization
         self.apply(self.weights_init)
