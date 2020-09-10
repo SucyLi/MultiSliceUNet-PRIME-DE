@@ -27,7 +27,6 @@ def write_nifti(data, aff, shape, out_path):
 # def rotate_volume(vol):
 #     tp_trans=ToPILImage()
 #     tt_trans=ToTensor()
-    
 #     angle=np.array([1, 1, 1])
 #     for i in range(3):
 #         if i==0:
@@ -46,9 +45,17 @@ def write_nifti(data, aff, shape, out_path):
 # 			one_slice=tt_trans(one_slice_pil)
 # 			if j==0: pass # Create New Vol
 
-def estimate_dice(gt_msk, prt_msk):
-    intersection=gt_msk*prt_msk
-    dice=2*float(intersection.sum())/float(gt_msk.sum()+prt_msk.sum())
+def estimate_dice(gt_msk, prt_msk, num_class):
+
+    dice = np.zeros(num_class)
+    for i in range(0, num_class):
+        gt = gt_msk == i
+        gt = gt * 1
+        prt = prt_msk == i
+        prt = prt * 1
+        intersection=gt*prt
+        dice[i]=2*float(intersection.sum())/float(gt.sum()+prt.sum())
+
     return dice
 
 def estimate_fn_fp(gt_msk, prt_msk, num_class):
@@ -208,25 +215,14 @@ def predict_volumes(model, rimg_in=None, cimg_in=None, bmsk_in=None, suffix="pre
         
         pr_bmsk=pr_bmsk.numpy()
 
-        # print("final prob mask " + str(pr_bmsk.shape))
-        # import pdb;pdb.set_trace()
-        # pr_bmsk_final=extract_large_comp(pr_bmsk>0.5)
-        
-        # trial 0
-        # pr_bmsk_final = np.zeros(list(raw_shape_expanded))
-        # for i_class in range(0,num_class):
-        #     pr_bmsk_final[i_class,:,:,:] = extract_large_comp(pr_bmsk[i_class,:,:,:]>0.5) * (i_class+1)
-        # pr_bmsk_final=np.sum(pr_bmsk_final,axis=0)
-
         # trial 1 
         pr_bmsk_final = np.argmax(pr_bmsk, axis=0)
-
+        
         if isinstance(bmsk, torch.Tensor):
             bmsk=bmsk.data[0].numpy()
-            dice=estimate_dice(bmsk, pr_bmsk_final)
+            dice=estimate_dice(bmsk, pr_bmsk_final, num_class)
             if verbose:
                 print(dice)
-
             fn_fp=estimate_fn_fp(bmsk, pr_bmsk_final, num_class)
 
         t1w_nii=volume_dataset.getCurCimgNii()
